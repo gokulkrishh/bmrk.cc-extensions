@@ -1,19 +1,14 @@
 import supabase from './lib/supabase';
 
-chrome.tabs.onUpdated.addListener(
-  async (_tabId, _changeInfo, tab: chrome.tabs.Tab | undefined) => {
-    if (!tab?.url || !tab?.id) return;
-    const url = new URL(tab?.url);
-    if (url?.origin === 'https://bmrk.cc') {
-      await finishUserOAuth(tab.url, tab);
-    }
-  },
-);
+chrome.tabs.onUpdated.addListener(async (_tabId, _changeInfo, tab: chrome.tabs.Tab | undefined) => {
+  if (!tab?.url || !tab?.id) return;
+  const url = new URL(tab?.url);
+  if (url?.origin === 'https://bmrk.cc') {
+    await finishUserOAuth(tab.url, tab);
+  }
+});
 
-const finishUserOAuth = async (
-  url: string,
-  tab: chrome.tabs.Tab | undefined,
-) => {
+const finishUserOAuth = async (url: string, tab: chrome.tabs.Tab | undefined) => {
   if (tab && tab.status === 'complete') {
     if (!tab.id) return;
     try {
@@ -44,7 +39,7 @@ function parseUrlHash(url: string) {
     hashParts.map((part) => {
       const [name, value] = part.split('=');
       return [name, value];
-    }),
+    })
   );
 
   return hashMap;
@@ -58,28 +53,19 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome?.contextMenus?.onClicked.addListener(
-  (info, tab: chrome.tabs.Tab | undefined) => {
-    if (info.menuItemId === 'saveBookmark') {
-      saveBookmark(tab);
-    }
-  },
-);
+chrome?.contextMenus?.onClicked.addListener((info, tab: chrome.tabs.Tab | undefined) => {
+  if (info.menuItemId === 'saveBookmark') {
+    saveBookmark(tab);
+  }
+});
 
 chrome.action.onClicked.addListener((tab: chrome.tabs.Tab | undefined) => {
   saveBookmark(tab);
 });
 
-const blackListedUrls = ['chrome://', 'chrome-extension://'];
-
 const getUser = async () => {
   const { session } = (await chrome.storage.local.get('session')) || {};
   return session?.user;
-};
-
-const isUrlAllowed = (url: string | undefined) => {
-  if (!url) return false;
-  return !blackListedUrls.every((excludedUrl) => url.startsWith(excludedUrl));
 };
 
 type BookmarkInsert = {
