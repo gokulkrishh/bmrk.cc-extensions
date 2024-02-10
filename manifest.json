@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark It. Chrome Extension",
+  "short_name": "bmrk it.",
+  "description": "Bookmark manager for the modern web.",
+  "version": "1.0.0",
+  "permissions": ["activeTab", "contextMenus", "tabs", "identity", "storage"],
+  "oauth2": {
+    "client_id": "531625309515-s757u5or54n1iqrjtuuh3m7hutb8n0de.apps.googleusercontent.com",
+    "scopes": ["email", "profile"]
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "./src/background.ts",
+    "type": "module"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  },
+  "homepage_url": "https://bmrk.cc",
+  "author": {
+    "email": "support@bmrk.cc"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
