@@ -17,6 +17,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    setLoading(true);
     setSession();
     const {
       data: { subscription: authListener },
@@ -69,9 +70,11 @@ export default function App() {
   const SignIn = () => (
     <div className="flex h-full justify-center items-center m-auto p-4">
       <div className="flex flex-col text-center sm:text-left">
-        <h2 className="font-semibold leading-none tracking-normal items-center flex-col justify-center flex">
-          <Icon />
-        </h2>
+        <a className="flex items-center justify-center" href="https://app.bmrk.cc" target="_blank">
+          <h2 className="font-semibold leading-none tracking-normal items-center flex-col justify-center flex">
+            <Icon />
+          </h2>
+        </a>
         <h3 className="mt-1 mb-0 text-lg text-center font-medium text-primary">Bookmark It.</h3>
         <p className="mb-3 !mt-0.5 text-center text-sm font-normal text-muted-foreground">Welcome, Sign in below.</p>
         <button
@@ -103,16 +106,18 @@ export default function App() {
           {user && !loading ? (
             <div className="flex fixed left-0 right-0 top-0 bg-background w-full border-b border-input justify-between">
               <div className="flex items-center shrink-0">
-                <h2 className="text-base shrink-0 mt-1 mb-1 ml-2 text-center font-medium text-primary mr-2 leading-none tracking-normal items-center justify-center flex">
-                  <Icon className="w-9 h-9 mr-1.5" />
-                  <span>Bookmark It.</span>
-                </h2>
+                <a className="flex items-center justify-center" href="https://app.bmrk.cc" target="_blank">
+                  <h2 className="text-base shrink-0 mt-1 mb-1 ml-2 text-center font-medium text-primary mr-2 leading-none tracking-normal items-center justify-center flex">
+                    <Icon className="w-9 h-9 mr-1.5" />
+                    <span>Bookmark It.</span>
+                  </h2>
+                </a>
               </div>
               <Profile user={user} onDone={onDone} />
             </div>
           ) : null}
           {user && !loading ? <Bookmarks /> : null}
-          {!user && !loading ? <SignIn /> : null}
+          {!loading && !user ? <SignIn /> : null}
         </div>
       </ThemeProvider>
       <Toaster richColors />

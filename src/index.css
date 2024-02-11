@@ -79,5 +79,5 @@
 html,
 body,
 #root {
-  @apply h-full;
+  @apply h-[250px];
 }
