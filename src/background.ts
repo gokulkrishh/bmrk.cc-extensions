@@ -1,9 +1,11 @@
-import supabase from './lib/supabase';
+import supabase, { getUser } from 'lib/supabase';
+
+import { toast } from 'sonner';
+import { BookmarkInsertModified } from 'types/data';
 
 chrome.tabs.onUpdated.addListener(async (_tabId, _changeInfo, tab: chrome.tabs.Tab | undefined) => {
   if (!tab?.url || !tab?.id) return;
-  const url = new URL(tab?.url);
-  if (url?.origin === 'https://bmrk.cc') {
+  if (tab.url?.startsWith(chrome.identity.getRedirectURL())) {
     await finishUserOAuth(tab.url, tab);
   }
 });
@@ -11,6 +13,7 @@ chrome.tabs.onUpdated.addListener(async (_tabId, _changeInfo, tab: chrome.tabs.T
 const finishUserOAuth = async (url: string, tab: chrome.tabs.Tab | undefined) => {
   if (tab && tab.status === 'complete') {
     if (!tab.id) return;
+    let setSession = false;
     try {
       const hashMap = parseUrlHash(url);
       const access_token = hashMap.get('access_token');
@@ -23,12 +26,14 @@ const finishUserOAuth = async (url: string, tab: chrome.tabs.Tab | undefined) =>
         refresh_token,
       });
       if (error) throw error;
-
       await chrome.storage.local.set({ session: data.session });
+      setSession = true;
     } catch (error) {
       console.error('Error setting session', error);
     } finally {
-      await chrome.tabs.remove(tab.id);
+      if (setSession) {
+        await chrome.tabs.remove(tab.id);
+      }
     }
   }
 };
@@ -63,31 +68,22 @@ chrome.action.onClicked.addListener((tab: chrome.tabs.Tab | undefined) => {
   saveBookmark(tab);
 });
 
-const getUser = async () => {
-  const { session } = (await chrome.storage.local.get('session')) || {};
-  return session?.user;
-};
-
-type BookmarkInsert = {
-  url: string;
-  title: string;
-  user_id: string;
-};
-
 const saveBookmark = async (tab: chrome.tabs.Tab | undefined) => {
-  const user = await getUser();
-  if (user && tab?.url) {
+  if (tab?.url) {
     try {
+      const user = await getUser();
       const { error } = await supabase.from('bookmarks').insert({
         url: tab.url,
         title: tab.title,
-        user_id: user.id,
-      } as BookmarkInsert);
+        user_id: user?.id,
+        metadata: { is_via_extension: true },
+      } as BookmarkInsertModified);
       if (error) throw error;
+      toast.success('Bookmark saved.');
     } catch (error) {
-      console.error('Error saving bookmarks', error);
+      toast.error('Error saving bookmark, please try again.');
     }
   } else {
-    console.error('URL is not allowed or user is not logged in.');
+    toast.error('URL is not allowed.');
   }
 };
