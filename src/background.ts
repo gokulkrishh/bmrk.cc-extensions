@@ -1,6 +1,5 @@
-import supabase, { getUser } from 'lib/supabase';
+import supabase from 'lib/supabase';
 
-import { toast } from 'sonner';
 import { BookmarkInsertModified } from 'types/data';
 
 chrome.tabs.onUpdated.addListener(async (_tabId, _changeInfo, tab: chrome.tabs.Tab | undefined) => {
@@ -13,7 +12,6 @@ chrome.tabs.onUpdated.addListener(async (_tabId, _changeInfo, tab: chrome.tabs.T
 const finishUserOAuth = async (url: string, tab: chrome.tabs.Tab | undefined) => {
   if (tab && tab.status === 'complete') {
     if (!tab.id) return;
-    let setSession = false;
     try {
       const hashMap = parseUrlHash(url);
       const access_token = hashMap.get('access_token');
@@ -21,19 +19,13 @@ const finishUserOAuth = async (url: string, tab: chrome.tabs.Tab | undefined) =>
       if (!access_token || !refresh_token) {
         throw new Error(`no supabase tokens found in URL hash`);
       }
-      const { data, error } = await supabase.auth.setSession({
-        access_token,
-        refresh_token,
-      });
+      const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
       if (error) throw error;
       await chrome.storage.local.set({ session: data.session });
-      setSession = true;
     } catch (error) {
       console.error('Error setting session', error);
     } finally {
-      if (setSession) {
-        await chrome.tabs.remove(tab.id);
-      }
+      await chrome.tabs.remove(tab.id);
     }
   }
 };
@@ -59,31 +51,20 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome?.contextMenus?.onClicked.addListener((info, tab: chrome.tabs.Tab | undefined) => {
-  if (info.menuItemId === 'saveBookmark') {
-    saveBookmark(tab);
+  if (info.menuItemId === 'saveBookmark' && tab) {
+    saveBookmarkInPopup(tab);
   }
 });
 
-chrome.action.onClicked.addListener((tab: chrome.tabs.Tab | undefined) => {
-  saveBookmark(tab);
-});
-
-const saveBookmark = async (tab: chrome.tabs.Tab | undefined) => {
-  if (tab?.url) {
-    try {
-      const user = await getUser();
-      const { error } = await supabase.from('bookmarks').insert({
-        url: tab.url,
-        title: tab.title,
-        user_id: user?.id,
-        metadata: { is_via_extension: true },
-      } as BookmarkInsertModified);
-      if (error) throw error;
-      toast.success('Bookmark saved.');
-    } catch (error) {
-      toast.error('Error saving bookmark, please try again.');
-    }
-  } else {
-    toast.error('URL is not allowed.');
+const saveBookmarkInPopup = async (tab: chrome.tabs.Tab) => {
+  if (tab.url && tab.title) {
+    const { session } = (await chrome.storage.local.get('session')) || {};
+    const payload: BookmarkInsertModified = {
+      title: tab.title,
+      url: tab.url,
+      user_id: session.user?.id,
+      metadata: { is_via_extension: true },
+    };
+    chrome.runtime.sendMessage({ payload, type: 'saveBookmark' });
   }
 };

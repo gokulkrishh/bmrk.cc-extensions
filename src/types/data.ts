@@ -11,7 +11,7 @@ export type BookmarkModified = Bookmark & {
 };
 export type BookmarkInsertModified = BookmarkInsert & {
   metadata: {
-    image: string;
+    image?: string;
     is_via_extension?: boolean;
   };
 };
