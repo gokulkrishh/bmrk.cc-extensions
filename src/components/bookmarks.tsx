@@ -1,5 +1,5 @@
 import supabase, { getUser } from 'lib/supabase';
-import { memo, useEffect, useState, useCallback } from 'react';
+import { memo, useEffect, useState, useCallback, useRef } from 'react';
 import { BookmarkInsertModified, BookmarkModified } from 'types/data';
 import Loader from './loader';
 import { toast } from 'sonner';
@@ -9,7 +9,9 @@ import { cn } from 'lib/utils';
 
 function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<BookmarkModified[]>([]);
+  const [result, setResult] = useState<BookmarkModified[]>([]);
   const [loading, setLoading] = useState(true);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const fetchBookmarks = useCallback(async () => {
     try {
@@ -23,6 +25,8 @@ function Bookmarks() {
         .returns<BookmarkModified[]>();
       if (error) throw error;
       setBookmarks(data ?? []);
+      setResult(data ?? []);
+      focusInput();
     } catch (error) {
       toast.error('Error getting bookmarks, please try again.');
     } finally {
@@ -41,7 +45,6 @@ function Bookmarks() {
             metadata: { is_via_extension: true },
           } as BookmarkInsertModified);
           if (error) throw error;
-          toast.success('Bookmark saved.');
           fetchBookmarks();
         } catch (error) {
           toast.error('Error saving bookmark, please try again.');
@@ -52,6 +55,11 @@ function Bookmarks() {
     },
     [fetchBookmarks]
   );
+
+  const focusInput = () => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  };
 
   useEffect(() => {
     const listenerCallback = async (request: { payload: BookmarkInsertModified; type: string }) => {
@@ -66,7 +74,8 @@ function Bookmarks() {
 
   const onChange = (value: string) => {
     if (!value?.length) {
-      fetchBookmarks();
+      setResult(bookmarks);
+      focusInput();
     }
 
     const filteredBookmark = bookmarks.filter((bookmark) => {
@@ -76,7 +85,7 @@ function Bookmarks() {
       );
     });
 
-    setBookmarks(filteredBookmark);
+    setResult(filteredBookmark);
   };
 
   return (
@@ -88,15 +97,16 @@ function Bookmarks() {
             className={cn(
               'flex h-11 w-full bg-background rounded-xl py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50'
             )}
+            ref={inputRef}
             placeholder="Search bookmarks"
             type="text"
             onChange={(event) => onChange(event.target.value)}
-            autoFocus
+            autoFocus={true}
             disabled={loading}
           />
         </div>
         <div className="flex flex-col mt-[100px] h-full w-full">
-          {!bookmarks.length && !loading ? (
+          {!result.length && !loading ? (
             <p className="flex w-full mt-5 text-muted-foreground text-base justify-center items-center text-center h-full">
               Bookmarks are empty.
             </p>
@@ -108,13 +118,13 @@ function Bookmarks() {
           ) : null}
         </div>
         <div className="flex fixed left-0 right-0 top-[95px] h-full overflow-y-auto items-start flex-col w-full p-2 px-4">
-          {bookmarks.map((bookmark: BookmarkModified, index: number) => {
+          {result.map((bookmark: BookmarkModified, index: number) => {
             const url = new URL(bookmark.url);
             url.searchParams.append('utm_source', 'bmrk.cc');
             return (
               <a
                 className={cn('py-1 hover:opacity-80 flex items-center', {
-                  'mb-[100px]': index === bookmarks.length - 1,
+                  'mb-[100px]': index === result.length - 1,
                 })}
                 target="_blank"
                 href={url.href}

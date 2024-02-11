@@ -1,11 +1,17 @@
 'use client';
 
-import { HelpCircleIcon, LogOut } from 'lucide-react';
+import { CommandIcon, HelpCircleIcon, Keyboard, LogOut } from 'lucide-react';
 
 import { cn } from 'lib/utils';
 
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { User } from '@supabase/supabase-js';
 import supabase from 'lib/supabase';
 
@@ -44,6 +50,14 @@ export default function Profile({
           </AvatarFallback>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="mr-2">
+          <DropdownMenuItem
+            className="flex items-center cursor-pointer"
+            onClick={() => {
+              chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+            }}
+          >
+            <Keyboard className="h-4 w-4 mr-2.5" /> Shortcuts
+          </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center cursor-pointer"
             onClick={() => {
