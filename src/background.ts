@@ -1,6 +1,6 @@
 import supabase from 'lib/supabase';
 
-import { BookmarkInsertModified } from 'types/data';
+import { BookmarkInsert } from 'types/data';
 
 const manifestData = chrome.runtime.getManifest();
 
@@ -26,12 +26,11 @@ const finishUserOAuth = async (
       if (!access_token || !refresh_token) {
         throw new Error(`no supabase tokens found in URL hash`);
       }
-      const { data, error } = await supabase.auth.setSession({
+      const { error } = await supabase.auth.setSession({
         access_token,
         refresh_token,
       });
       if (error) throw error;
-      await chrome.storage.local.set({ session: data.session });
     } catch (error) {
       console.error('Error setting session', error);
     } finally {
@@ -64,31 +63,56 @@ chrome.runtime.onInstalled.addListener((details) => {
 chrome?.contextMenus?.onClicked.addListener(
   (info, tab: chrome.tabs.Tab | undefined) => {
     if (info.menuItemId === 'saveBookmark' && tab) {
-      saveBookmarkInPopup(tab);
+      saveBookmark(tab);
     }
   },
 );
 
-const saveBookmarkInPopup = async (tab: chrome.tabs.Tab) => {
+const forceRefreshBookmarks = async () => {
+  // To force refresh chrome extension when a bookmark is save;
+  const cacheTime = Date.now() - 3600 * 1111; // setting cache time 1hr back to refresh
+  const storage = await chrome.storage.local.get('cache');
+  await chrome.storage.local.set({ cache: storage?.cache || [], cacheTime });
+  await chrome.runtime.sendMessage({ type: 'refreshBookmark' });
+};
+
+const saveBookmark = async (tab: chrome.tabs.Tab) => {
   if (tab.url && tab.title) {
-    const { session } = (await chrome.storage.local.get('session')) || {};
-    const payload: BookmarkInsertModified = {
-      title: tab.title,
-      url: tab.url,
-      user_id: session.user?.id,
-      metadata: { is_via_extension: true },
-    };
-    chrome.runtime.sendMessage({ payload, type: 'saveBookmark' });
+    const { data } = await supabase.auth.getUser();
+    const { user } = data;
+
+    if (user?.id) {
+      const payload = {
+        title: tab.title,
+        url: tab.url,
+        metadata: { is_via_extension: true },
+      };
+
+      try {
+        const { error } = await supabase
+          .from('bookmarks')
+          .insert({ ...payload, user_id: user.id } as BookmarkInsert);
+
+        if (error) {
+          throw new Error('Error saving the bookmark. Try again.');
+        }
+        await forceRefreshBookmarks();
+      } catch {
+        console.error('Error saving the bookmark. Try again.');
+      }
+    }
   }
 };
 
-chrome.runtime.onMessageExternal.addListener(function (request, sender) {
+chrome.runtime.onMessageExternal.addListener(async (request, sender) => {
   // if (
-  //   sender.url?.match(manifestData?.externally_connectable?.matches?.[0] ?? '') ||
+  //   sender.url?.match(
+  //     manifestData?.externally_connectable?.matches?.[0] ?? '',
+  //   ) ||
   //   sender.url?.match(manifestData?.externally_connectable?.matches?.[1] ?? '')
   // ) {
   if (request.refresh) {
-    chrome.runtime.sendMessage({ type: 'refreshBookmark' });
+    await forceRefreshBookmarks();
   }
   // }
 });

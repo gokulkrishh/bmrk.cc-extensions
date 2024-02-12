@@ -11,7 +11,7 @@ import Profile from 'components/profile';
 import { Toaster } from 'components/ui/sonner';
 
 import { formatDate } from 'lib/date';
-import supabase, { setSession } from 'lib/supabase';
+import supabase from 'lib/supabase';
 import { cn } from 'lib/utils';
 
 export default function App() {
@@ -20,17 +20,10 @@ export default function App() {
 
   useEffect(() => {
     setLoading(true);
-    setSession();
     const {
       data: { subscription: authListener },
     } = supabase.auth.onAuthStateChange(
-      async (event, currentSession: Session | null) => {
-        if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
-          await chrome.storage.local.set({ session: currentSession });
-        }
-        if (event == 'SIGNED_OUT') {
-          await chrome.storage.local.set({ session: null });
-        }
+      async (_event, currentSession: Session | null) => {
         if (currentSession?.user) {
           setUser(currentSession?.user);
         }

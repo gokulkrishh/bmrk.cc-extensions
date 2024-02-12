@@ -58,7 +58,7 @@ function Bookmarks() {
       callback: (data: unknown) => void,
       invalidateCache?: boolean | undefined,
     ) => {
-      chrome.storage.local.get(['cache', 'cacheTime'], function (items) {
+      chrome.storage.local.get(['cache', 'cacheTime'], (items) => {
         if (
           !invalidateCache &&
           items.cache &&
@@ -87,30 +87,6 @@ function Bookmarks() {
     [cacheBookmarks],
   );
 
-  const saveBookmark = useCallback(
-    async (payload: BookmarkInsertModified) => {
-      if (payload?.url) {
-        try {
-          const user = await getUser();
-          const { error } = await supabase.from('bookmarks').insert({
-            ...payload,
-            user_id: user?.id,
-            metadata: { is_via_extension: true },
-          } as BookmarkInsertModified);
-          if (error) throw error;
-          toast.success('Bookmark is saved.');
-          const invalidateCache = true;
-          fetchAndCacheBookmarks(invalidateCache);
-        } catch (error) {
-          toast.error('Error saving bookmark, please try again.');
-        }
-      } else {
-        toast.error('URL is not allowed.');
-      }
-    },
-    [fetchAndCacheBookmarks],
-  );
-
   const focusInput = () => {
     inputRef.current?.focus();
     inputRef.current?.select();
@@ -121,9 +97,6 @@ function Bookmarks() {
       payload: BookmarkInsertModified;
       type: string;
     }) => {
-      if (request.type === 'saveBookmark') {
-        await saveBookmark(request.payload as BookmarkInsertModified);
-      }
       if (request.type === 'refreshBookmark') {
         const invalidateCache = true;
         fetchAndCacheBookmarks(invalidateCache);
@@ -132,7 +105,7 @@ function Bookmarks() {
     fetchAndCacheBookmarks();
     chrome.runtime.onMessage.addListener(listenerCallback);
     return () => chrome.runtime.onMessage.removeListener(listenerCallback);
-  }, [fetchAndCacheBookmarks, saveBookmark]);
+  }, [fetchAndCacheBookmarks]);
 
   const onChange = (value: string) => {
     if (!value?.length) {

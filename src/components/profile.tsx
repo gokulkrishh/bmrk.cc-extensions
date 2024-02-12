@@ -11,7 +11,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
@@ -31,7 +30,6 @@ export default function Profile({
   }
 
   const signOut = async () => {
-    await chrome.storage.local.set({ session: null });
     await supabase.auth.signOut();
     onDone?.();
   };

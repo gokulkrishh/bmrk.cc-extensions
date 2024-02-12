@@ -1,32 +1,29 @@
-import { createClient } from '@supabase/supabase-js';
-
-import { User } from 'types/data';
+import { Session, createClient } from '@supabase/supabase-js';
 
 function createSupabaseClient() {
   return createClient(
     import.meta.env.VITE_SUPABASE_URL ?? '',
     import.meta.env.VITE_SUPABASE_ANON_KEY ?? '',
     {
-      global: {
-        fetch: fetch,
+      auth: {
+        storage: {
+          async getItem(key: string): Promise<string | null> {
+            const storage = await chrome.storage.local.get(key);
+            return storage?.[key];
+          },
+          async setItem(key: string, value: string): Promise<void> {
+            await chrome.storage.local.set({
+              [key]: JSON.parse(value),
+            });
+          },
+          async removeItem(key: string): Promise<void> {
+            await chrome.storage.local.remove(key);
+          },
+        },
       },
     },
   );
 }
-
-export const setSession = async () => {
-  try {
-    const supabase = createSupabaseClient();
-    const { session } = (await chrome.storage.local.get('session')) || {};
-    const { error } = await supabase.auth.setSession(session);
-    if (error) {
-      throw error;
-    }
-    return session?.user as User | undefined;
-  } catch {
-    return undefined;
-  }
-};
 
 export const getUser = async () => {
   try {
