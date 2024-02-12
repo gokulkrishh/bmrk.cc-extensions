@@ -1,7 +1,9 @@
 'use client';
 
+import { User } from '@supabase/supabase-js';
 import { CommandIcon, HelpCircleIcon, Keyboard, LogOut } from 'lucide-react';
 
+import supabase from 'lib/supabase';
 import { cn } from 'lib/utils';
 
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -12,8 +14,6 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { User } from '@supabase/supabase-js';
-import supabase from 'lib/supabase';
 
 const helpMailLink = 'mailto:support@bmrk.cc';
 
@@ -66,7 +66,10 @@ export default function Profile({
           >
             <HelpCircleIcon className="h-4 w-4 mr-2.5" /> Help
           </DropdownMenuItem>
-          <DropdownMenuItem className="flex items-center cursor-pointer" onClick={signOut}>
+          <DropdownMenuItem
+            className="flex items-center cursor-pointer"
+            onClick={signOut}
+          >
             <LogOut className="h-4 w-4 mr-2.5" /> Logout
           </DropdownMenuItem>
         </DropdownMenuContent>

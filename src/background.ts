@@ -2,14 +2,21 @@ import supabase from 'lib/supabase';
 
 import { BookmarkInsertModified } from 'types/data';
 
-chrome.tabs.onUpdated.addListener(async (_tabId, _changeInfo, tab: chrome.tabs.Tab | undefined) => {
-  if (!tab?.url || !tab?.id) return;
-  if (tab.url?.startsWith(chrome.identity.getRedirectURL())) {
-    await finishUserOAuth(tab.url, tab);
-  }
-});
+const manifestData = chrome.runtime.getManifest();
 
-const finishUserOAuth = async (url: string, tab: chrome.tabs.Tab | undefined) => {
+chrome.tabs.onUpdated.addListener(
+  async (_tabId, _changeInfo, tab: chrome.tabs.Tab | undefined) => {
+    if (!tab?.url || !tab?.id) return;
+    if (tab.url?.startsWith(chrome.identity.getRedirectURL())) {
+      await finishUserOAuth(tab.url, tab);
+    }
+  },
+);
+
+const finishUserOAuth = async (
+  url: string,
+  tab: chrome.tabs.Tab | undefined,
+) => {
   if (tab && tab.status === 'complete') {
     if (!tab.id) return;
     try {
@@ -19,7 +26,10 @@ const finishUserOAuth = async (url: string, tab: chrome.tabs.Tab | undefined) =>
       if (!access_token || !refresh_token) {
         throw new Error(`no supabase tokens found in URL hash`);
       }
-      const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+      const { data, error } = await supabase.auth.setSession({
+        access_token,
+        refresh_token,
+      });
       if (error) throw error;
       await chrome.storage.local.set({ session: data.session });
     } catch (error) {
@@ -36,7 +46,7 @@ function parseUrlHash(url: string) {
     hashParts.map((part) => {
       const [name, value] = part.split('=');
       return [name, value];
-    })
+    }),
   );
 
   return hashMap;
@@ -50,11 +60,13 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome?.contextMenus?.onClicked.addListener((info, tab: chrome.tabs.Tab | undefined) => {
-  if (info.menuItemId === 'saveBookmark' && tab) {
-    saveBookmarkInPopup(tab);
-  }
-});
+chrome?.contextMenus?.onClicked.addListener(
+  (info, tab: chrome.tabs.Tab | undefined) => {
+    if (info.menuItemId === 'saveBookmark' && tab) {
+      saveBookmarkInPopup(tab);
+    }
+  },
+);
 
 const saveBookmarkInPopup = async (tab: chrome.tabs.Tab) => {
   if (tab.url && tab.title) {
@@ -68,3 +80,16 @@ const saveBookmarkInPopup = async (tab: chrome.tabs.Tab) => {
     chrome.runtime.sendMessage({ payload, type: 'saveBookmark' });
   }
 };
+
+chrome.runtime.onMessageExternal.addListener(function (request, sender) {
+  // if (
+  //   sender.url?.match(manifestData?.externally_connectable?.matches?.[0] ?? '') ||
+  //   sender.url?.match(manifestData?.externally_connectable?.matches?.[1] ?? '')
+  // ) {
+  if (request.refresh) {
+    console.log(document.cookie);
+
+    chrome.runtime.sendMessage({ type: 'refreshBookmark' });
+  }
+  // }
+});

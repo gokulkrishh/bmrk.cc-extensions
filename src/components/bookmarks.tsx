@@ -1,38 +1,91 @@
-import supabase, { getUser } from 'lib/supabase';
-import { memo, useEffect, useState, useCallback, useRef } from 'react';
-import { BookmarkInsertModified, BookmarkModified } from 'types/data';
-import Loader from './loader';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+
+import { RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import BookmarkFavicon from './bookmark-favicon';
-import { SearchIcon } from 'lucide-react';
+
+import supabase, { getUser } from 'lib/supabase';
 import { cn } from 'lib/utils';
+
+import { BookmarkInsertModified, BookmarkModified } from 'types/data';
+
+import BookmarkFavicon from './bookmark-favicon';
+import Loader from './loader';
+import {
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandLoading,
+  CommandWithoutDialog,
+} from './ui/command';
 
 function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<BookmarkModified[]>([]);
   const [result, setResult] = useState<BookmarkModified[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const fetchBookmarks = useCallback(async () => {
-    try {
-      setLoading(true);
-      const user = await getUser();
-      const { data, error } = await supabase
-        .from('bookmarks')
-        .select(`*, bookmarks_tags (tags!inner (id,name))`)
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-        .returns<BookmarkModified[]>();
-      if (error) throw error;
-      setBookmarks(data ?? []);
-      setResult(data ?? []);
-      focusInput();
-    } catch (error) {
-      toast.error('Error getting bookmarks, please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchBookmarks = useCallback(
+    async (callback: (data: BookmarkModified[]) => void) => {
+      try {
+        setLoading(true);
+        const user = await getUser();
+        const { data, error } = await supabase
+          .from('bookmarks')
+          .select(`*, bookmarks_tags (tags!inner (id,name))`)
+          .eq('user_id', user?.id)
+          .order('created_at', { ascending: false })
+          .returns<BookmarkModified[]>();
+        if (error) throw error;
+        chrome.storage.local.set({ cache: data, cacheTime: Date.now() }, () => {
+          callback(data);
+          focusInput();
+        });
+        setBookmarks(data ?? []);
+        setResult(data ?? []);
+      } catch (error) {
+        toast.error('Error getting bookmarks, please try again.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  const cacheBookmarks = useCallback(
+    async (
+      callback: (data: unknown) => void,
+      invalidateCache?: boolean | undefined,
+    ) => {
+      chrome.storage.local.get(['cache', 'cacheTime'], function (items) {
+        if (
+          !invalidateCache &&
+          items.cache &&
+          items.cacheTime &&
+          items.cacheTime
+        ) {
+          if (items.cacheTime > Date.now() - 3600 * 1000) {
+            return callback(items.cache); // Serialization is auto, so nested objects are no problem
+          }
+        }
+
+        fetchBookmarks(callback);
+      });
+    },
+    [fetchBookmarks],
+  );
+
+  const fetchAndCacheBookmarks = useCallback(
+    (invalidateCache?: boolean | undefined) => {
+      return cacheBookmarks((data: unknown) => {
+        setBookmarks(data as BookmarkModified[]);
+        setResult(data as BookmarkModified[]);
+        setLoading(false);
+      }, invalidateCache);
+    },
+    [cacheBookmarks],
+  );
 
   const saveBookmark = useCallback(
     async (payload: BookmarkInsertModified) => {
@@ -45,7 +98,9 @@ function Bookmarks() {
             metadata: { is_via_extension: true },
           } as BookmarkInsertModified);
           if (error) throw error;
-          fetchBookmarks();
+          toast.success('Bookmark is saved.');
+          const invalidateCache = true;
+          fetchAndCacheBookmarks(invalidateCache);
         } catch (error) {
           toast.error('Error saving bookmark, please try again.');
         }
@@ -53,7 +108,7 @@ function Bookmarks() {
         toast.error('URL is not allowed.');
       }
     },
-    [fetchBookmarks]
+    [fetchAndCacheBookmarks],
   );
 
   const focusInput = () => {
@@ -62,20 +117,26 @@ function Bookmarks() {
   };
 
   useEffect(() => {
-    const listenerCallback = async (request: { payload: BookmarkInsertModified; type: string }) => {
+    const listenerCallback = async (request: {
+      payload: BookmarkInsertModified;
+      type: string;
+    }) => {
       if (request.type === 'saveBookmark') {
         await saveBookmark(request.payload as BookmarkInsertModified);
       }
+      if (request.type === 'refreshBookmark') {
+        const invalidateCache = true;
+        fetchAndCacheBookmarks(invalidateCache);
+      }
     };
-    fetchBookmarks();
+    fetchAndCacheBookmarks();
     chrome.runtime.onMessage.addListener(listenerCallback);
     return () => chrome.runtime.onMessage.removeListener(listenerCallback);
-  }, [fetchBookmarks, saveBookmark]);
+  }, [fetchAndCacheBookmarks, saveBookmark]);
 
   const onChange = (value: string) => {
     if (!value?.length) {
       setResult(bookmarks);
-      focusInput();
     }
 
     const filteredBookmark = bookmarks.filter((bookmark) => {
@@ -88,57 +149,74 @@ function Bookmarks() {
     setResult(filteredBookmark);
   };
 
+  const openBookmark = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   return (
     <>
-      <div className="flex flex-col w-full">
-        <div className="flex fixed left-0 right-0 top-[49px] items-center bg-background border-b px-4">
-          <SearchIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-          <input
+      <div className="flex flex-col w-full mt-[49px] overflow-hidden">
+        <button
+          title="Refresh bookmarks"
+          className="absolute top-2 rounded-full right-14 opacity-80 transition-all cursor-pointer border-transparent hover:bg-accent hover:border hover:border-input border active:bg-accent duration-200 z-10 p-2"
+          onClick={() => {
+            const invalidateCache = true;
+            fetchAndCacheBookmarks(invalidateCache);
+          }}
+        >
+          <RefreshCw className="h-4 w-4 shrink-0 text-white" />
+        </button>
+
+        <CommandWithoutDialog className="mt-10">
+          <CommandInput
+            autoFocus
             className={cn(
-              'flex h-11 w-full bg-background rounded-xl py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50'
+              'flex h-11 w-full text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
             )}
             ref={inputRef}
             placeholder="Search bookmarks"
-            type="text"
-            onChange={(event) => onChange(event.target.value)}
-            autoFocus={true}
+            onValueChange={(value) => onChange(value)}
             disabled={loading}
           />
-        </div>
-        <div className="flex flex-col mt-[100px] h-full w-full">
-          {!result.length && !loading ? (
-            <p className="flex w-full mt-5 text-muted-foreground text-base justify-center items-center text-center h-full">
-              Bookmarks are empty.
-            </p>
-          ) : null}
-          {loading ? (
-            <div className="flex w-full mt-4 justify-center items-center h-full text-sm">
-              <Loader className="w-6 h-6 mr-2" />
-            </div>
-          ) : null}
-        </div>
-        <div className="flex fixed left-0 right-0 top-[95px] h-full overflow-y-auto items-start flex-col w-full p-2 px-4">
-          {result.map((bookmark: BookmarkModified, index: number) => {
-            const url = new URL(bookmark.url);
-            url.searchParams.append('utm_source', 'bmrk.cc');
-            return (
-              <a
-                className={cn('py-1 hover:opacity-80 flex items-center', {
-                  'mb-[100px]': index === result.length - 1,
-                })}
-                target="_blank"
-                href={url.href}
-                key={bookmark.id}
-              >
-                <BookmarkFavicon url={bookmark.url} title={bookmark.title ?? ''} className="mr-3 shrink-0" />
-                <div className="flex flex-col">
-                  <span className="text-sm">{bookmark.title}</span>
-                  <span className="text-xs text-muted-foreground">{url.hostname}</span>
-                </div>
-              </a>
-            );
-          })}
-        </div>
+          <CommandList>
+            <CommandGroup heading="All Bookmarks">
+              {loading ? (
+                <CommandLoading>
+                  <div className="flex justify-center my-6">
+                    <Loader />
+                  </div>
+                </CommandLoading>
+              ) : null}
+
+              {result.map((bookmark: BookmarkModified) => {
+                const url = new URL(bookmark.url);
+                url.searchParams.append('utm_source', 'bmrk.cc');
+                return (
+                  <CommandItem
+                    className={cn('flex items-center')}
+                    onSelect={() => {
+                      openBookmark(url.href);
+                    }}
+                    key={bookmark.id}
+                  >
+                    <BookmarkFavicon
+                      url={bookmark.url}
+                      title={bookmark.title ?? ''}
+                      className="mr-3 shrink-0"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-sm">{bookmark.title}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {url.hostname}
+                      </span>
+                    </div>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+            <CommandEmpty>No result.</CommandEmpty>
+          </CommandList>
+        </CommandWithoutDialog>
       </div>
     </>
   );

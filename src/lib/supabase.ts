@@ -1,8 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
+
 import { User } from 'types/data';
 
 function createSupabaseClient() {
-  return createClient(import.meta.env.VITE_SUPABASE_URL ?? '', import.meta.env.VITE_SUPABASE_ANON_KEY ?? '');
+  return createClient(
+    import.meta.env.VITE_SUPABASE_URL ?? '',
+    import.meta.env.VITE_SUPABASE_ANON_KEY ?? '',
+    {
+      global: {
+        fetch: fetch,
+      },
+    },
+  );
 }
 
 export const setSession = async () => {

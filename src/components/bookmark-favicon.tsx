@@ -6,7 +6,11 @@ type CardFaviconProps = {
   className?: string;
 };
 
-export default function BookmarkFavicon({ url, title, className }: CardFaviconProps) {
+export default function BookmarkFavicon({
+  url,
+  title,
+  className,
+}: CardFaviconProps) {
   return (
     <div className={cn('rounded-full w-6 h-6 bg-white', className)}>
       <img

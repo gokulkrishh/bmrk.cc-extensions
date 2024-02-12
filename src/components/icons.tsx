@@ -38,7 +38,10 @@ export const Icon = ({ className }: { className?: string }) => {
           <feOffset dy="-0.111"></feOffset>
           <feGaussianBlur stdDeviation="1.107"></feGaussianBlur>
           <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0"></feColorMatrix>
-          <feBlend in2="BackgroundImageFix" result="effect1_dropShadow_6_3"></feBlend>
+          <feBlend
+            in2="BackgroundImageFix"
+            result="effect1_dropShadow_6_3"
+          ></feBlend>
           <feColorMatrix
             in="SourceAlpha"
             result="hardAlpha"
@@ -47,7 +50,10 @@ export const Icon = ({ className }: { className?: string }) => {
           <feOffset dy="-0.266"></feOffset>
           <feGaussianBlur stdDeviation="2.66"></feGaussianBlur>
           <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.0503198 0"></feColorMatrix>
-          <feBlend in2="effect1_dropShadow_6_3" result="effect2_dropShadow_6_3"></feBlend>
+          <feBlend
+            in2="effect1_dropShadow_6_3"
+            result="effect2_dropShadow_6_3"
+          ></feBlend>
           <feColorMatrix
             in="SourceAlpha"
             result="hardAlpha"
@@ -56,7 +62,10 @@ export const Icon = ({ className }: { className?: string }) => {
           <feOffset dy="-0.501"></feOffset>
           <feGaussianBlur stdDeviation="5.009"></feGaussianBlur>
           <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.0417275 0"></feColorMatrix>
-          <feBlend in2="effect2_dropShadow_6_3" result="effect3_dropShadow_6_3"></feBlend>
+          <feBlend
+            in2="effect2_dropShadow_6_3"
+            result="effect3_dropShadow_6_3"
+          ></feBlend>
           <feColorMatrix
             in="SourceAlpha"
             result="hardAlpha"
@@ -65,7 +74,10 @@ export const Icon = ({ className }: { className?: string }) => {
           <feOffset dy="-0.893"></feOffset>
           <feGaussianBlur stdDeviation="8.935"></feGaussianBlur>
           <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.035 0"></feColorMatrix>
-          <feBlend in2="effect3_dropShadow_6_3" result="effect4_dropShadow_6_3"></feBlend>
+          <feBlend
+            in2="effect3_dropShadow_6_3"
+            result="effect4_dropShadow_6_3"
+          ></feBlend>
           <feColorMatrix
             in="SourceAlpha"
             result="hardAlpha"
@@ -74,7 +86,10 @@ export const Icon = ({ className }: { className?: string }) => {
           <feOffset dy="-1.671"></feOffset>
           <feGaussianBlur stdDeviation="16.711"></feGaussianBlur>
           <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.0282725 0"></feColorMatrix>
-          <feBlend in2="effect4_dropShadow_6_3" result="effect5_dropShadow_6_3"></feBlend>
+          <feBlend
+            in2="effect4_dropShadow_6_3"
+            result="effect5_dropShadow_6_3"
+          ></feBlend>
           <feColorMatrix
             in="SourceAlpha"
             result="hardAlpha"
@@ -83,8 +98,15 @@ export const Icon = ({ className }: { className?: string }) => {
           <feOffset dy="-4"></feOffset>
           <feGaussianBlur stdDeviation="40"></feGaussianBlur>
           <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.0196802 0"></feColorMatrix>
-          <feBlend in2="effect5_dropShadow_6_3" result="effect6_dropShadow_6_3"></feBlend>
-          <feBlend in="SourceGraphic" in2="effect6_dropShadow_6_3" result="shape"></feBlend>
+          <feBlend
+            in2="effect5_dropShadow_6_3"
+            result="effect6_dropShadow_6_3"
+          ></feBlend>
+          <feBlend
+            in="SourceGraphic"
+            in2="effect6_dropShadow_6_3"
+            result="shape"
+          ></feBlend>
         </filter>
         <clipPath id="clip0_6_3">
           <path fill="#fff" d="M0 0H512V512H0z"></path>

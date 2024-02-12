@@ -10,6 +10,7 @@
     "scopes": ["email", "profile"]
   },
   "action": {
+    "default_title": "Bookmark It.",
     "default_popup": "index.html",
     "default_icon": {
       "16": "icon16.png",
@@ -17,6 +18,9 @@
       "48": "icon48.png",
       "128": "icon128.png"
     }
+  },
+  "externally_connectable": {
+    "matches": ["https://*.bmrk.cc/*", "http://*.localhost:3000/*"]
   },
   "background": {
     "service_worker": "./src/background.ts",
