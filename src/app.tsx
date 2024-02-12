@@ -124,7 +124,7 @@ export default function App() {
             <div className="flex fixed left-0 right-0 top-0 bg-background w-full border-b border-input justify-between">
               <div className="flex items-center shrink-0">
                 <a
-                  className="flex items-center justify-center"
+                  className="flex items-center justify-center active:opacity-85"
                   href="https://app.bmrk.cc"
                   target="_blank"
                 >

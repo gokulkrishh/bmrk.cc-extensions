@@ -52,7 +52,8 @@ function parseUrlHash(url: string) {
   return hashMap;
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason !== 'install' && details.reason !== 'update') return;
   chrome.contextMenus.create({
     id: 'saveBookmark',
     title: 'Bookmark this page',
@@ -87,8 +88,6 @@ chrome.runtime.onMessageExternal.addListener(function (request, sender) {
   //   sender.url?.match(manifestData?.externally_connectable?.matches?.[1] ?? '')
   // ) {
   if (request.refresh) {
-    console.log(document.cookie);
-
     chrome.runtime.sendMessage({ type: 'refreshBookmark' });
   }
   // }
