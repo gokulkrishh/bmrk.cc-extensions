@@ -20,7 +20,7 @@
     }
   },
   "externally_connectable": {
-    "matches": ["https://*.bmrk.cc/*", "http://*.localhost:3000/*"]
+    "matches": ["https://app.bmrk.cc/*", "http://app.localhost:3000/*"]
   },
   "background": {
     "service_worker": "./src/background.ts",

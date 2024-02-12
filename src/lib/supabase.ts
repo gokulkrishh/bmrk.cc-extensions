@@ -1,4 +1,4 @@
-import { Session, createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 function createSupabaseClient() {
   return createClient(

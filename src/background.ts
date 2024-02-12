@@ -104,15 +104,14 @@ const saveBookmark = async (tab: chrome.tabs.Tab) => {
   }
 };
 
+const whitelistedUrls = manifestData?.externally_connectable?.matches?.map(
+  (url) => url.split('*')[0],
+);
+
 chrome.runtime.onMessageExternal.addListener(async (request, sender) => {
-  // if (
-  //   sender.url?.match(
-  //     manifestData?.externally_connectable?.matches?.[0] ?? '',
-  //   ) ||
-  //   sender.url?.match(manifestData?.externally_connectable?.matches?.[1] ?? '')
-  // ) {
-  if (request.refresh) {
-    await forceRefreshBookmarks();
+  if (sender?.url && whitelistedUrls?.includes(sender?.url)) {
+    if (request.refresh) {
+      await forceRefreshBookmarks();
+    }
   }
-  // }
 });
