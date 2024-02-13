@@ -30,6 +30,7 @@ export default function Profile({
   }
 
   const signOut = async () => {
+    await chrome.storage.local.set({ cache: [], cacheTime: -1 });
     await supabase.auth.signOut();
     onDone?.();
   };
