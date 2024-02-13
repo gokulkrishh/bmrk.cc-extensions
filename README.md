@@ -1,30 +1,45 @@
-# React + TypeScript + Vite
+<a href="https://bmrk.cc-extensions">
+<p align="center"><img alt="Bookmark It. Extensions – An open source extensions for the bookmark manager application." width="100" height="100" src="./public/icon.svg"></p>
+  <h1 align="center">Bookmark It. Chrome Extension</h1>
+</a>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<p align="center">
+  Bookmark It. Extensions – An open source extensions for bookmark manager application.
+</p>
 
-Currently, two official plugins are available:
+<p align="center">
+  <a href="https://github.com/gokulkrishh/bmrk.cc-extensions/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/gokulkrishh/bmrk.cc-extensions?label=license&logo=github&color=f80&logoColor=fff" alt="License" />
+  </a>
+</p>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Introduction
 
-## Expanding the ESLint configuration
+Bookmark It. Extensions – An open source extension for bookmark manager application. Currently only supports chrome based browsers.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+### Tech Stack
 
-- Configure the top-level `parserOptions` property like this:
+- [ReactJS](https://reactjs.org/) – framework
+- [Components](https://ui.shadcn.com/) – ui-components
+- [Tailwind](https://tailwindcss.com/) – CSS
+- [Supabase](https://supabase.com/) – authentication & data
+- [CRXJS Vite](https://crxjs.dev/vite-plugin) – Build tools
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+### Contributions
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+Here's how you can contribute:
+
+- [Open an issue](https://github.com/gokulkrishh/bmrk.cc-extensions/issues) if you believe you've encountered a bug.
+- Make a [pull request](https://github.com/gokulkrishh/bmrk.cc-extensions/pull) to add new features/make quality-of-life improvements/fix bugs.
+
+<a href="https://github.com/gokulkrishh/bmrk.cc-extensions/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=gokulkrishh/bmrk.cc-extensions" alt="contributors" />
+</a>
+
+### Author
+
+- Gokulakrishnan Kalaikovan ([@gokul_i](https://twitter.com/gokul_i))
+
+### License
+
+Bookmark It. is an open source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. You can [find it here](https://github.com/gokulkrishh/bmrk.cc-extensions/blob/main/LICENSE).
