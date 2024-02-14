@@ -6,9 +6,53 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
+      bookmarks: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          id: number;
+          is_fav: boolean | null;
+          metadata: Json | null;
+          title: string | null;
+          updated_at: string;
+          url: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          id?: never;
+          is_fav?: boolean | null;
+          metadata?: Json | null;
+          title?: string | null;
+          updated_at?: string;
+          url: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          id?: never;
+          is_fav?: boolean | null;
+          metadata?: Json | null;
+          title?: string | null;
+          updated_at?: string;
+          url?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bookmarks_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       bookmarks_tags: {
         Row: {
           bookmark_id: number;
@@ -49,53 +93,6 @@ export interface Database {
           },
         ];
       };
-      bookmarks: {
-        Row: {
-          created_at: string;
-          description: string | null;
-          id: number;
-          is_fav: boolean | null;
-          metadata: Json | null;
-          tag_ids: number[] | null;
-          title: string | null;
-          updated_at: string;
-          url: string;
-          user_id: string;
-        };
-        Insert: {
-          created_at?: string;
-          description?: string | null;
-          id?: never;
-          is_fav?: boolean | null;
-          metadata?: Json | null;
-          tag_ids?: number[] | null;
-          title?: string | null;
-          updated_at?: string;
-          url: string;
-          user_id: string;
-        };
-        Update: {
-          created_at?: string;
-          description?: string | null;
-          id?: never;
-          is_fav?: boolean | null;
-          metadata?: Json | null;
-          tag_ids?: number[] | null;
-          title?: string | null;
-          updated_at?: string;
-          url?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'bookmarks_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
       tags: {
         Row: {
           created_at: string;
@@ -107,14 +104,14 @@ export interface Database {
         Insert: {
           created_at?: string;
           id?: never;
-          name?: string | null;
+          name: string;
           updated_at?: string;
           user_id: string;
         };
         Update: {
           created_at?: string;
           id?: never;
-          name?: string | null;
+          name?: string;
           updated_at?: string;
           user_id?: string;
         };
@@ -134,6 +131,7 @@ export interface Database {
           created_at: string | null;
           email: string | null;
           full_name: string | null;
+          has_welcomed: boolean | null;
           id: string;
           updated_at: string | null;
           usage: number | null;
@@ -143,6 +141,7 @@ export interface Database {
           created_at?: string | null;
           email?: string | null;
           full_name?: string | null;
+          has_welcomed?: boolean | null;
           id: string;
           updated_at?: string | null;
           usage?: number | null;
@@ -152,6 +151,7 @@ export interface Database {
           created_at?: string | null;
           email?: string | null;
           full_name?: string | null;
+          has_welcomed?: boolean | null;
           id?: string;
           updated_at?: string | null;
           usage?: number | null;
@@ -180,7 +180,7 @@ export interface Database {
       [_ in never]: never;
     };
   };
-}
+};
 
 export type Tables<
   PublicTableNameOrOptions extends
