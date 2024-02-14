@@ -1,7 +1,7 @@
 'use client';
 
 import { User } from '@supabase/supabase-js';
-import { AppWindow, HelpCircleIcon, Keyboard, LogOut } from 'lucide-react';
+import { HelpCircleIcon, Keyboard, LogOut } from 'lucide-react';
 
 import supabase from 'lib/supabase';
 import { cn } from 'lib/utils';

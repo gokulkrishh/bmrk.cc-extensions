@@ -25,7 +25,6 @@ import {
 function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<BookmarkModified[]>([]);
   const [loading, setLoading] = useState(false);
-  const [value, setValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const fetchBookmarks = useCallback(
@@ -126,12 +125,7 @@ function Bookmarks() {
           <RefreshCw className="h-4 w-4 shrink-0 text-primary" />
         </button>
 
-        <CommandWithoutDialog
-          className="mt-10"
-          onValueChange={setValue}
-          value={value}
-          loop
-        >
+        <CommandWithoutDialog className="mt-10" loop>
           <CommandInput
             autoFocus
             className={cn(
@@ -142,7 +136,7 @@ function Bookmarks() {
             disabled={loading}
           />
           <CommandList>
-            <CommandEmpty>No result found.</CommandEmpty>
+            {!loading ? <CommandEmpty>No result found.</CommandEmpty> : null}
             <CommandGroup heading="All Bookmarks">
               {loading ? (
                 <CommandLoading>
