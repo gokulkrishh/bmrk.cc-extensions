@@ -1,7 +1,7 @@
 'use client';
 
 import { User } from '@supabase/supabase-js';
-import { HelpCircleIcon, Keyboard, LogOut } from 'lucide-react';
+import { Bug, HelpCircleIcon, Keyboard, LogOut } from 'lucide-react';
 
 import supabase from 'lib/supabase';
 import { cn } from 'lib/utils';
@@ -56,6 +56,17 @@ export default function Profile({
             }}
           >
             <Keyboard className="h-4 w-4 mr-2.5" /> Shortcuts
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="flex items-center cursor-pointer"
+            onClick={() => {
+              window.open(
+                `https://github.com/gokulkrishh/bmrk.cc-extensions/issues`,
+                '_blank',
+              );
+            }}
+          >
+            <Bug className="h-4 w-4 mr-2.5" /> File a bug
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center cursor-pointer"
