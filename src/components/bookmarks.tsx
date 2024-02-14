@@ -9,6 +9,7 @@ import { cn } from 'lib/utils';
 import { BookmarkInsertModified, BookmarkModified } from 'types/data';
 
 import BookmarkFavicon from './bookmark-favicon';
+import BookmarkMenu from './bookmark-menu';
 import Loader from './loader';
 import { ThemeToggle } from './theme-toggle';
 import {
@@ -23,8 +24,8 @@ import {
 
 function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<BookmarkModified[]>([]);
-  const [result, setResult] = useState<BookmarkModified[]>([]);
   const [loading, setLoading] = useState(false);
+  const [value, setValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const fetchBookmarks = useCallback(
@@ -44,7 +45,6 @@ function Bookmarks() {
           focusInput();
         });
         setBookmarks(data ?? []);
-        setResult(data ?? []);
       } catch (error) {
         toast.error('Error getting bookmarks, please try again.');
       } finally {
@@ -81,7 +81,6 @@ function Bookmarks() {
     (invalidateCache?: boolean | undefined) => {
       return cacheBookmarks((data: unknown) => {
         setBookmarks(data as BookmarkModified[]);
-        setResult(data as BookmarkModified[]);
         setLoading(false);
       }, invalidateCache);
     },
@@ -108,21 +107,6 @@ function Bookmarks() {
     return () => chrome.runtime.onMessage.removeListener(listenerCallback);
   }, [fetchAndCacheBookmarks]);
 
-  const onChange = (value: string) => {
-    if (!value?.length) {
-      setResult(bookmarks);
-    }
-
-    const filteredBookmark = bookmarks.filter((bookmark) => {
-      return (
-        bookmark.title?.toLowerCase().includes(value.toLowerCase()) ||
-        bookmark.url?.toLowerCase().includes(value.toLowerCase())
-      );
-    });
-
-    setResult(filteredBookmark);
-  };
-
   const openBookmark = (url: string) => {
     window.open(url, '_blank');
   };
@@ -142,7 +126,12 @@ function Bookmarks() {
           <RefreshCw className="h-4 w-4 shrink-0 text-primary" />
         </button>
 
-        <CommandWithoutDialog className="mt-10">
+        <CommandWithoutDialog
+          className="mt-10"
+          onValueChange={setValue}
+          value={value}
+          loop
+        >
           <CommandInput
             autoFocus
             className={cn(
@@ -150,10 +139,10 @@ function Bookmarks() {
             )}
             ref={inputRef}
             placeholder="Search bookmarks"
-            onValueChange={(value) => onChange(value)}
             disabled={loading}
           />
           <CommandList>
+            <CommandEmpty>No result found.</CommandEmpty>
             <CommandGroup heading="All Bookmarks">
               {loading ? (
                 <CommandLoading>
@@ -162,16 +151,16 @@ function Bookmarks() {
                   </div>
                 </CommandLoading>
               ) : null}
-
-              {result.map((bookmark: BookmarkModified) => {
+              {bookmarks.map((bookmark: BookmarkModified) => {
                 const url = new URL(bookmark.url);
                 url.searchParams.append('utm_source', 'bmrk.cc');
                 return (
                   <CommandItem
-                    className={cn('flex items-center')}
+                    className={cn('flex items-center justify-between')}
                     onSelect={() => {
                       openBookmark(url.href);
                     }}
+                    value={`${bookmark.title}-${url.href}`}
                     key={bookmark.id}
                   >
                     <BookmarkFavicon
@@ -179,17 +168,19 @@ function Bookmarks() {
                       title={bookmark.title ?? ''}
                       className="mr-3 shrink-0"
                     />
-                    <div className="flex flex-col">
-                      <span className="text-sm">{bookmark.title}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {url.hostname}
-                      </span>
+                    <div className="flex items-start justify-between w-full">
+                      <div className="flex flex-col">
+                        <span className="text-sm">{bookmark.title}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {url.hostname}
+                        </span>
+                      </div>
+                      <BookmarkMenu data={bookmark} />
                     </div>
                   </CommandItem>
                 );
               })}
             </CommandGroup>
-            <CommandEmpty>No result.</CommandEmpty>
           </CommandList>
         </CommandWithoutDialog>
       </div>

@@ -17,7 +17,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      'flex h-full w-full flex-col overflow-hidden rounded-xl bg-popover text-popover-foreground',
+      'flex h-full w-full flex-col overflow-hidden rounded-xl bg-background text-popover-foreground',
       className,
     )}
     {...props}
@@ -27,6 +27,9 @@ Command.displayName = CommandPrimitive.displayName;
 
 interface CommandDialogProps extends DialogProps {
   className?: string;
+  onValueChange?: (value: string) => void;
+  value?: string;
+  loop?: boolean;
 }
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
