@@ -10,6 +10,7 @@ import { BookmarkInsertModified, BookmarkModified } from 'types/data';
 
 import BookmarkFavicon from './bookmark-favicon';
 import Loader from './loader';
+import { ThemeToggle } from './theme-toggle';
 import {
   CommandEmpty,
   CommandGroup,
@@ -129,6 +130,7 @@ function Bookmarks() {
   return (
     <>
       <div className="flex flex-col w-full mt-[49px] overflow-hidden">
+        <ThemeToggle className="absolute top-2 rounded-full right-24" />
         <button
           title="Refresh bookmarks"
           className="absolute top-2 rounded-full right-14 opacity-80 transition-all cursor-pointer border-transparent hover:bg-accent hover:border hover:border-input border active:bg-accent duration-200 z-10 p-2"
@@ -137,7 +139,7 @@ function Bookmarks() {
             fetchAndCacheBookmarks(invalidateCache);
           }}
         >
-          <RefreshCw className="h-4 w-4 shrink-0 text-white" />
+          <RefreshCw className="h-4 w-4 shrink-0 text-primary" />
         </button>
 
         <CommandWithoutDialog className="mt-10">
