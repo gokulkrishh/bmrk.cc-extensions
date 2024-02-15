@@ -116,7 +116,7 @@ function Bookmarks() {
         <ThemeToggle className="absolute top-2 rounded-full right-24" />
         <button
           title="Refresh bookmarks"
-          className="absolute top-2 rounded-full right-14 opacity-80 transition-all cursor-pointer border-transparent hover:bg-accent hover:border hover:border-input border active:bg-accent duration-200 z-10 p-2"
+          className="absolute top-2 rounded-full right-14 transition-all cursor-pointer border-transparent hover:bg-accent hover:border hover:border-input border active:bg-accent duration-200 z-10 p-2"
           onClick={() => {
             const invalidateCache = true;
             fetchAndCacheBookmarks(invalidateCache);

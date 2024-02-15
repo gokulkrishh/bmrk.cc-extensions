@@ -76,7 +76,7 @@ export default function App() {
             <Icon />
           </h2>
         </a>
-        <h3 className="mt-1 mb-0 text-lg text-center font-medium text-primary">
+        <h3 className="mt-2.5 mb-0 text-lg text-center font-medium text-primary">
           Bookmark It.
         </h3>
         <p className="mb-3 !mt-0.5 text-center text-sm font-normal text-muted-foreground">
@@ -122,8 +122,8 @@ export default function App() {
                   target="_blank"
                 >
                   <h2 className="shrink-0 mt-1 mb-1 ml-2 text-center font-medium text-primary mr-2 leading-none tracking-normal items-center justify-center flex">
-                    <Icon className="w-9 h-9" />
-                    <div className="flex ml-1.5 flex-col items-start">
+                    <Icon className="w-8 h-8" />
+                    <div className="flex ml-2 flex-col items-start">
                       <span className="font-medium text-[15px]  tracking-wide">
                         Bookmark It.
                       </span>
