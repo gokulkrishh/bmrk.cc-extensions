@@ -4,7 +4,7 @@
 </a>
 
 <p align="center">
-  Bookmark It. Extensions – An open source extensions for bookmark manager application.
+  Bookmark It. Extensions – An open source extensions for the web browser.
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
 
 ## Introduction
 
-Bookmark It. Extensions – An open source extension for bookmark manager application. Currently only supports chrome based browsers.
+Bookmark It. Extensions – An open source extensions for the web browser. Currently only supports chrome based browsers.
 
 ### Tech Stack
 
