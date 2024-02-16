@@ -96,9 +96,13 @@ function Bookmarks() {
       payload: BookmarkInsertModified;
       type: string;
     }) => {
-      if (request.type === 'refreshBookmark') {
+      if (request.type === 'refreshBookmarks') {
         const invalidateCache = true;
         fetchAndCacheBookmarks(invalidateCache);
+      } else if (request.type === 'forceLogout') {
+        setBookmarks([]);
+        await chrome.storage.local.set({ cache: [], cacheTime: -1 });
+        await supabase.auth.signOut();
       }
     };
     fetchAndCacheBookmarks();

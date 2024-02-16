@@ -23,7 +23,12 @@ export default function App() {
     const {
       data: { subscription: authListener },
     } = supabase.auth.onAuthStateChange(
-      async (_event, currentSession: Session | null) => {
+      async (event, currentSession: Session | null) => {
+        if (event == 'SIGNED_OUT') {
+          setUser(null);
+          await chrome.storage.local.set({ cache: [], cacheTime: -1 });
+        }
+
         if (currentSession?.user) {
           setUser(currentSession?.user);
         }

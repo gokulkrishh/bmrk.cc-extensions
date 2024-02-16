@@ -73,7 +73,11 @@ const forceRefreshBookmarks = async () => {
   const cacheTime = Date.now() - 3600 * 1111; // setting cache time 1hr back to refresh
   const storage = await chrome.storage.local.get('cache');
   await chrome.storage.local.set({ cache: storage?.cache || [], cacheTime });
-  await chrome.runtime.sendMessage({ type: 'refreshBookmark' });
+  await chrome.runtime.sendMessage({ type: 'refreshBookmarks' });
+};
+
+const forceLogout = async () => {
+  await chrome.runtime.sendMessage({ type: 'forceLogout' });
 };
 
 const saveBookmark = async (tab: chrome.tabs.Tab) => {
@@ -112,6 +116,8 @@ chrome.runtime.onMessageExternal.addListener(async (request, sender) => {
   if (sender?.url && whitelistedUrls?.includes(sender?.url)) {
     if (request.refresh) {
       await forceRefreshBookmarks();
+    } else if (request.logout) {
+      await forceLogout();
     }
   }
 });
