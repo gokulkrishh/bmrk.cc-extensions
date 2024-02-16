@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Bookmark It.",
   "short_name": "bmrk it.",
-  "description": "Bookmark manager for the modern web.",
+  "description": "Bookmark It. is an open-source bookmark manager to organize and personalize your bookmarking experience.",
   "version": "1.0.0",
   "permissions": ["activeTab", "contextMenus", "tabs", "identity", "storage"],
   "oauth2": {
