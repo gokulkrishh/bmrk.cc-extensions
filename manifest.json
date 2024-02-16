@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Bookmark It.",
   "short_name": "bmrk it.",
-  "description": "Bookmark It. is an open-source bookmark manager to organize and personalize your bookmarking experience.",
-  "version": "1.0.0",
+  "description": "Bookmark It. is an open-source bookmark manager to organize, discover and personalize your bookmarking experience.",
+  "version": "1.0.1",
   "permissions": ["activeTab", "contextMenus", "tabs", "identity", "storage"],
   "oauth2": {
     "client_id": "531625309515-s757u5or54n1iqrjtuuh3m7hutb8n0de.apps.googleusercontent.com",
