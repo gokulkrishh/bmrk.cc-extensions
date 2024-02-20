@@ -61,7 +61,7 @@ export default function Profile({
             className="flex items-center cursor-pointer"
             onClick={() => {
               window.open(
-                `https://github.com/gokulkrishh/bmrk.cc-extensions/issues`,
+                `https://github.com/gokulkrishh/bmrk.cc-extensions/issues/new/choose`,
                 '_blank',
               );
             }}
