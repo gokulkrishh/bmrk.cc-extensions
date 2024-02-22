@@ -146,7 +146,7 @@ export default function App() {
           {!loading && !user ? <SignIn /> : null}
         </div>
       </ThemeProvider>
-      <Toaster richColors />
+      <Toaster expand visibleToasts={2} richColors />
     </>
   );
 }
