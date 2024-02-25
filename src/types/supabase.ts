@@ -128,33 +128,45 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null;
+          billing_cycle_start_date: string;
           created_at: string | null;
           email: string | null;
           full_name: string | null;
           has_welcomed: boolean | null;
           id: string;
+          order_info: Json | null;
+          plan_status: string | null;
           updated_at: string | null;
-          usage: number | null;
+          upload_count: number;
+          usage: Json | null;
         };
         Insert: {
           avatar_url?: string | null;
+          billing_cycle_start_date?: string;
           created_at?: string | null;
           email?: string | null;
           full_name?: string | null;
           has_welcomed?: boolean | null;
           id: string;
+          order_info?: Json | null;
+          plan_status?: string | null;
           updated_at?: string | null;
-          usage?: number | null;
+          upload_count?: number;
+          usage?: Json | null;
         };
         Update: {
           avatar_url?: string | null;
+          billing_cycle_start_date?: string;
           created_at?: string | null;
           email?: string | null;
           full_name?: string | null;
           has_welcomed?: boolean | null;
           id?: string;
+          order_info?: Json | null;
+          plan_status?: string | null;
           updated_at?: string | null;
-          usage?: number | null;
+          upload_count?: number;
+          usage?: Json | null;
         };
         Relationships: [
           {
@@ -171,7 +183,40 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      increment_bookmarks_usage: {
+        Args: {
+          user_id: string;
+          count: number;
+        };
+        Returns: undefined;
+      };
+      increment_favorites_usage: {
+        Args: {
+          user_id: string;
+          count: number;
+        };
+        Returns: undefined;
+      };
+      increment_tags_usage: {
+        Args: {
+          user_id: string;
+          count: number;
+        };
+        Returns: undefined;
+      };
+      increment_upload_count: {
+        Args: {
+          user_id: string;
+        };
+        Returns: undefined;
+      };
+      update_user_bookmarks_usage: {
+        Args: {
+          user_id: string;
+          count: number;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       [_ in never]: never;

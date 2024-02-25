@@ -100,6 +100,15 @@ const saveBookmark = async (tab: chrome.tabs.Tab) => {
         if (error) {
           throw new Error('Error saving the bookmark. Try again.');
         }
+
+        const { error: IncrementError } = await supabase.rpc(
+          'increment_bookmarks_usage',
+          { user_id: user.id, count: 1 },
+        );
+
+        if (IncrementError) {
+          return new Error('Unable to increment usage.');
+        }
         await forceRefreshBookmarks();
       } catch {
         console.error('Error saving the bookmark. Try again.');
