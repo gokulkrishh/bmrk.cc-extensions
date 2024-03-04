@@ -56,7 +56,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   chrome.contextMenus.create({
     id: 'saveBookmark',
     title: 'Bookmark this page',
-    contexts: ['page'],
+    contexts: ['all'],
   });
 });
 
@@ -70,7 +70,7 @@ chrome?.contextMenus?.onClicked.addListener(
 
 const forceRefreshBookmarks = async () => {
   // To force refresh chrome extension when a bookmark is save;
-  const cacheTime = Date.now() - 3600 * 1111; // setting cache time 1hr back to refresh
+  const cacheTime = Date.now() - 7200 * 1111; // setting cache time 2hr + few secs to force refresh
   const storage = await chrome.storage.local.get('cache');
   await chrome.storage.local.set({ cache: storage?.cache || [], cacheTime });
   await chrome.runtime.sendMessage({ type: 'refreshBookmarks' });
@@ -80,10 +80,29 @@ const forceLogout = async () => {
   await chrome.runtime.sendMessage({ type: 'forceLogout' });
 };
 
+const showSuccessBadge = async (tabId: number) => {
+  await chrome.action.setBadgeBackgroundColor(
+    { color: '#00FF00' },
+    async () => {
+      await chrome.action.setBadgeText({ tabId, text: '✓' });
+      setTimeout(() => chrome.action.setBadgeText({ tabId, text: '' }), 6000);
+    },
+  );
+};
+
+const showErrorBadge = async (tabId: number) => {
+  await chrome.action.setBadgeBackgroundColor({ color: '#ff0' }, async () => {
+    await chrome.action.setBadgeText({ tabId, text: 'Failed' });
+    setTimeout(() => chrome.action.setBadgeText({ tabId, text: '' }), 6000);
+  });
+};
+
 const saveBookmark = async (tab: chrome.tabs.Tab) => {
-  if (tab.url && tab.title) {
+  if (tab.url && tab.title && tab.id) {
     const { data } = await supabase.auth.getUser();
     const { user } = data;
+    const tabId = tab.id;
+    chrome.action.setBadgeText({ text: '', tabId: tab.id });
 
     if (user?.id) {
       const payload = {
@@ -98,6 +117,7 @@ const saveBookmark = async (tab: chrome.tabs.Tab) => {
           .insert({ ...payload, user_id: user.id } as BookmarkInsert);
 
         if (error) {
+          await showErrorBadge(tabId);
           throw new Error('Error saving the bookmark. Try again.');
         }
 
@@ -107,12 +127,17 @@ const saveBookmark = async (tab: chrome.tabs.Tab) => {
         );
 
         if (IncrementError) {
-          return new Error('Unable to increment usage.');
+          await showErrorBadge(tabId);
+          throw new Error('Unable to increment usage.');
         }
+
+        await showSuccessBadge(tabId);
         await forceRefreshBookmarks();
-      } catch {
-        console.error('Error saving the bookmark. Try again.');
+      } catch (error) {
+        console.log('Error saving the bookmark', error);
       }
+    } else {
+      await showErrorBadge(tabId);
     }
   }
 };

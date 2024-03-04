@@ -76,6 +76,26 @@
   }
 }
 
+@layer utilities {
+  .hidden-scrollbar::-webkit-scrollbar {
+    @apply hidden;
+  }
+
+  .hidden-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .mask-start-and-end {
+    mask: linear-gradient(90deg, #000c, #000 10% 95%, #0000);
+    -webkit-mask: linear-gradient(90deg, #000c, #000 10% 90%, #0000);
+  }
+
+  .animation-pause {
+    animation-play-state: paused;
+  }
+}
+
 html,
 body,
 #root {

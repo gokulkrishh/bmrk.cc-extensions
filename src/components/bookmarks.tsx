@@ -65,7 +65,8 @@ function Bookmarks() {
           items.cacheTime &&
           items.cacheTime
         ) {
-          if (items.cacheTime > Date.now() - 3600 * 1000) {
+          // cache the data for 2hrs
+          if (items.cacheTime > Date.now() - 7200 * 1000) {
             return callback(items.cache); // Serialization is auto, so nested objects are no problem
           }
         }
@@ -141,7 +142,7 @@ function Bookmarks() {
           />
           <CommandList>
             {!loading ? <CommandEmpty>No result found.</CommandEmpty> : null}
-            <CommandGroup heading="All Bookmarks">
+            <CommandGroup className="!px-1" heading="All Bookmarks">
               {loading ? (
                 <CommandLoading>
                   <div className="flex justify-center my-6">
@@ -152,26 +153,32 @@ function Bookmarks() {
               {bookmarks.map((bookmark: BookmarkModified) => {
                 const url = new URL(bookmark.url);
                 url.searchParams.append('utm_source', 'bmrk.cc');
+                const tags = bookmark.bookmarks_tags
+                  .map(({ tags: { name } }) => name)
+                  .join('-');
                 return (
                   <CommandItem
                     className={cn('flex items-center justify-between')}
                     onSelect={() => {
                       openBookmark(url.href);
                     }}
-                    value={`${bookmark.title}-${url.href}`}
+                    value={`${bookmark.title}-${url.href}-${tags}`}
                     key={bookmark.id}
                   >
-                    <BookmarkFavicon
-                      url={bookmark.url}
-                      title={bookmark.title ?? ''}
-                      className="mr-3 shrink-0"
-                    />
                     <div className="flex items-start justify-between w-full">
-                      <div className="flex flex-col">
-                        <span className="text-sm">{bookmark.title}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {url.hostname}
-                        </span>
+                      <div className="flex w-full">
+                        <BookmarkFavicon
+                          url={bookmark.url}
+                          title={bookmark.title ?? ''}
+                          className="mt-0.5 mr-3 shrink-0"
+                        />
+                        <div className="flex flex-col">
+                          <span className="text-sm">{bookmark.title}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {url.hostname}
+                          </span>
+                          {/* <TagBadge data={bookmark} className="mt-1.5" /> */}
+                        </div>
                       </div>
                       <BookmarkMenu data={bookmark} />
                     </div>

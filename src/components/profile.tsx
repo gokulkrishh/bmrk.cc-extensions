@@ -1,5 +1,3 @@
-'use client';
-
 import { User } from '@supabase/supabase-js';
 import { Bug, HelpCircleIcon, Keyboard, LogOut } from 'lucide-react';
 

@@ -1,5 +1,3 @@
-'use client';
-
 import { Link, MoreVerticalIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
