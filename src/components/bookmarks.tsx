@@ -10,6 +10,7 @@ import { BookmarkInsertModified, BookmarkModified } from 'types/data';
 
 import BookmarkFavicon from './bookmark-favicon';
 import BookmarkMenu from './bookmark-menu';
+import { AddBookmark, SavedBookmark } from './icons';
 import Loader from './loader';
 import { ThemeToggle } from './theme-toggle';
 import {
@@ -26,6 +27,7 @@ function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<BookmarkModified[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   const fetchBookmarks = useCallback(
     async (callback: (data: BookmarkModified[]) => void) => {
@@ -92,6 +94,26 @@ function Bookmarks() {
     inputRef.current?.select();
   };
 
+  const setCurrentPageAsBookmarked = useCallback(
+    (bookmarksData: BookmarkModified[]) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const url = tabs[0]?.url;
+        if (!url) {
+          setIsBookmarked(false);
+        } else {
+          setIsBookmarked(
+            Boolean(bookmarksData.find((bookmark) => bookmark.url === url)),
+          );
+        }
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    setCurrentPageAsBookmarked(bookmarks);
+  }, [bookmarks, setCurrentPageAsBookmarked]);
+
   useEffect(() => {
     const listenerCallback = async (request: {
       payload: BookmarkInsertModified;
@@ -109,16 +131,46 @@ function Bookmarks() {
     fetchAndCacheBookmarks();
     chrome.runtime.onMessage.addListener(listenerCallback);
     return () => chrome.runtime.onMessage.removeListener(listenerCallback);
-  }, [fetchAndCacheBookmarks]);
+  }, [fetchAndCacheBookmarks, setCurrentPageAsBookmarked]);
 
   const openBookmark = (url: string) => {
     window.open(url, '_blank');
+  };
+
+  const saveBookmark = async () => {
+    chrome.runtime.sendMessage({ type: 'saveBookmark' }, (response) => {
+      if (response?.error) {
+        toast.error(response.error);
+      } else {
+        toast.success('Bookmark saved successfully.');
+        fetchAndCacheBookmarks();
+      }
+    });
   };
 
   return (
     <>
       <div className="flex flex-col w-full mt-[49px] overflow-hidden">
         <ThemeToggle className="absolute top-2 rounded-full right-24" />
+        <button
+          title={isBookmarked ? `Bookmarked` : `Add bookmark`}
+          className={cn(
+            'absolute top-2 rounded-full right-[134px] transition-all cursor-pointer border-transparent hover:bg-accent hover:border hover:border-input border active:bg-accent duration-200 z-10 p-2',
+            {
+              'pointer-events-none': isBookmarked,
+            },
+          )}
+          disabled={isBookmarked}
+          onClick={async () => {
+            await saveBookmark();
+          }}
+        >
+          {isBookmarked ? (
+            <SavedBookmark className="h-4 w-4 shrink-0 text-green-600" />
+          ) : (
+            <AddBookmark className="h-4 w-4 shrink-0 text-primary" />
+          )}
+        </button>
         <button
           title="Refresh bookmarks"
           className="absolute top-2 rounded-full right-14 transition-all cursor-pointer border-transparent hover:bg-accent hover:border hover:border-input border active:bg-accent duration-200 z-10 p-2"
@@ -177,7 +229,6 @@ function Bookmarks() {
                           <span className="text-xs text-muted-foreground">
                             {url.hostname}
                           </span>
-                          {/* <TagBadge data={bookmark} className="mt-1.5" /> */}
                         </div>
                       </div>
                       <BookmarkMenu data={bookmark} />

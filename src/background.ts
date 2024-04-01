@@ -85,7 +85,6 @@ const showSuccessBadge = async (tabId: number) => {
     { color: '#00FF00' },
     async () => {
       await chrome.action.setBadgeText({ tabId, text: '✓' });
-      setTimeout(() => chrome.action.setBadgeText({ tabId, text: '' }), 6000);
     },
   );
 };
@@ -146,12 +145,26 @@ const whitelistedUrls = manifestData?.externally_connectable?.matches?.map(
   (url) => url.split('*')[0],
 );
 
+chrome.runtime.onMessage.addListener(async (request, _sender, sendResponse) => {
+  if (request.type === 'saveBookmark') {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tabs.length) {
+      await saveBookmark(tabs[0]);
+      sendResponse({ success: true });
+    } else {
+      sendResponse({ error: 'No active tab found' });
+    }
+  }
+});
+
 chrome.runtime.onMessageExternal.addListener(async (request, sender) => {
   if (sender?.url && whitelistedUrls?.includes(sender?.url)) {
     if (request.refresh) {
       await forceRefreshBookmarks();
     } else if (request.logout) {
       await forceLogout();
+    } else {
+      console.log('Invalid request');
     }
   }
 });
