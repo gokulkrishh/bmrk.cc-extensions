@@ -102,7 +102,16 @@ function Bookmarks() {
           setIsBookmarked(false);
         } else {
           setIsBookmarked(
-            Boolean(bookmarksData.find((bookmark) => bookmark.url === url)),
+            Boolean(
+              bookmarksData.find((bookmark) => {
+                const urlObj = new URL(url);
+                const bookmarkUrlObj = new URL(bookmark.url);
+                return (
+                  `${bookmarkUrlObj.origin}${bookmarkUrlObj.pathname}` ===
+                  `${urlObj.origin}${urlObj.pathname}`
+                );
+              }),
+            ),
           );
         }
       });
