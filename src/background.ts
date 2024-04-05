@@ -1,6 +1,6 @@
 import supabase from 'lib/supabase';
 
-import { BookmarkInsert } from 'types/data';
+import { Bookmark, BookmarkInsert, BookmarkModified } from 'types/data';
 
 const manifestData = chrome.runtime.getManifest();
 
@@ -141,6 +141,72 @@ const saveBookmark = async (tab: chrome.tabs.Tab) => {
   }
 };
 
+const deleteBookmark = async (
+  tab: chrome.tabs.Tab,
+  bookmark: BookmarkModified,
+) => {
+  if (tab.url && tab.title && tab.id) {
+    const { data } = await supabase.auth.getUser();
+    const { user } = data;
+    const tabId = tab.id;
+    chrome.action.setBadgeText({ text: '', tabId: tab.id });
+
+    if (user?.id) {
+      try {
+        const { error: bookmarkTagsError } = await supabase
+          .from('bookmarks_tags')
+          .delete()
+          .eq('bookmark_id', bookmark.id)
+          .eq('user_id', user.id);
+
+        if (bookmarkTagsError) {
+          return new Error('Unable to delete the bookmark.');
+        }
+
+        const { error: bookmarkError } = await supabase
+          .from('bookmarks')
+          .delete()
+          .eq('id', bookmark.id)
+          .eq('user_id', user.id);
+
+        if (bookmarkError) {
+          await showErrorBadge(tabId);
+          throw new Error('Unable to delete the bookmark.');
+        }
+
+        const { error: IncrementError } = await supabase.rpc(
+          'increment_bookmarks_usage',
+          { user_id: user.id, count: -1 },
+        );
+
+        if (IncrementError) {
+          await showErrorBadge(tabId);
+          throw new Error('Unable to increment usage.');
+        }
+
+        if (bookmark.is_fav) {
+          const { error: incrementFavError } = await supabase.rpc(
+            'increment_favorites_usage',
+            {
+              user_id: user.id,
+              count: -1,
+            },
+          );
+
+          if (incrementFavError) {
+            throw new Error('Unable to increment usage.');
+          }
+        }
+        await forceRefreshBookmarks();
+      } catch (error) {
+        console.log('Error saving the bookmark', error);
+      }
+    } else {
+      await showErrorBadge(tabId);
+    }
+  }
+};
+
 const whitelistedUrls = manifestData?.externally_connectable?.matches?.map(
   (url) => url.split('*')[0],
 );
@@ -150,6 +216,14 @@ chrome.runtime.onMessage.addListener(async (request, _sender, sendResponse) => {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tabs.length) {
       await saveBookmark(tabs[0]);
+      sendResponse({ success: true });
+    } else {
+      sendResponse({ error: 'No active tab found' });
+    }
+  } else if (request.type === 'deleteBookmark') {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tabs.length) {
+      await deleteBookmark(tabs[0], request.payload);
       sendResponse({ success: true });
     } else {
       sendResponse({ error: 'No active tab found' });

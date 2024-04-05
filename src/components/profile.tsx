@@ -1,9 +1,9 @@
 import { User } from '@supabase/supabase-js';
-import { Bug, HelpCircleIcon, Keyboard, LogOut } from 'lucide-react';
 
 import supabase from 'lib/supabase';
 import { cn } from 'lib/utils';
 
+import { BugIcon, HelpIcon, LogoutIcon, ShortcutIcon } from './icons';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
   DropdownMenu,
@@ -53,7 +53,7 @@ export default function Profile({
               chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
             }}
           >
-            <Keyboard className="h-4 w-4 mr-2.5" /> Shortcuts
+            <ShortcutIcon className="h-4 w-4 mr-2.5" /> Shortcuts
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center cursor-pointer"
@@ -64,7 +64,7 @@ export default function Profile({
               );
             }}
           >
-            <Bug className="h-4 w-4 mr-2.5" /> File a bug
+            <BugIcon className="h-4 w-4 mr-2.5" /> File a bug
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center cursor-pointer"
@@ -72,13 +72,13 @@ export default function Profile({
               window.open(helpMailLink, '_blank');
             }}
           >
-            <HelpCircleIcon className="h-4 w-4 mr-2.5" /> Help
+            <HelpIcon className="h-4 w-4 mr-2.5" /> Help
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center cursor-pointer"
             onClick={signOut}
           >
-            <LogOut className="h-4 w-4 mr-2.5" /> Logout
+            <LogoutIcon className="h-4 w-4 mr-2.5" /> Logout
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

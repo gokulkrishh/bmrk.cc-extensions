@@ -1,6 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 
-import { RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 import supabase, { getUser } from 'lib/supabase';
@@ -10,7 +9,7 @@ import { BookmarkInsertModified, BookmarkModified } from 'types/data';
 
 import BookmarkFavicon from './bookmark-favicon';
 import BookmarkMenu from './bookmark-menu';
-import { AddBookmark, SavedBookmark } from './icons';
+import { AddBookmark, RefreshIcon, SavedBookmark } from './icons';
 import Loader from './loader';
 import { ThemeToggle } from './theme-toggle';
 import {
@@ -27,7 +26,10 @@ function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<BookmarkModified[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState<
+    BookmarkModified | undefined
+  >();
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
   const fetchBookmarks = useCallback(
     async (callback: (data: BookmarkModified[]) => void) => {
@@ -99,19 +101,17 @@ function Bookmarks() {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const url = tabs[0]?.url;
         if (!url) {
-          setIsBookmarked(false);
+          setIsBookmarked(undefined);
         } else {
           setIsBookmarked(
-            Boolean(
-              bookmarksData.find((bookmark) => {
-                const urlObj = new URL(url);
-                const bookmarkUrlObj = new URL(bookmark.url);
-                return (
-                  `${bookmarkUrlObj.origin}${bookmarkUrlObj.pathname}` ===
-                  `${urlObj.origin}${urlObj.pathname}`
-                );
-              }),
-            ),
+            bookmarksData.find((bookmark) => {
+              const urlObj = new URL(url);
+              const bookmarkUrlObj = new URL(bookmark.url);
+              return (
+                `${bookmarkUrlObj.origin}${bookmarkUrlObj.pathname}${bookmarkUrlObj.search}` ===
+                `${urlObj.origin}${urlObj.pathname}${urlObj.search}`
+              );
+            }),
           );
         }
       });
@@ -120,7 +120,9 @@ function Bookmarks() {
   );
 
   useEffect(() => {
+    setBookmarkLoading(true);
     setCurrentPageAsBookmarked(bookmarks);
+    setBookmarkLoading(false);
   }, [bookmarks, setCurrentPageAsBookmarked]);
 
   useEffect(() => {
@@ -151,10 +153,24 @@ function Bookmarks() {
       if (response?.error) {
         toast.error(response.error);
       } else {
-        toast.success('Bookmark saved successfully.');
+        toast.success('Bookmark saved successfully');
         fetchAndCacheBookmarks();
       }
     });
+  };
+
+  const deleteBookmark = async (bookmark: BookmarkModified) => {
+    chrome.runtime.sendMessage(
+      { type: 'deleteBookmark', payload: bookmark },
+      (response) => {
+        if (response?.error) {
+          toast.error(response.error);
+        } else {
+          toast.success('Bookmark deleted successfully');
+          fetchAndCacheBookmarks();
+        }
+      },
+    );
   };
 
   return (
@@ -162,19 +178,21 @@ function Bookmarks() {
       <div className="flex flex-col w-full mt-[49px] overflow-hidden">
         <ThemeToggle className="absolute top-2 rounded-full right-24" />
         <button
-          title={isBookmarked ? `Bookmarked` : `Add bookmark`}
+          title={isBookmarked ? `Delete bookmark` : `Add bookmark`}
           className={cn(
-            'absolute top-2 rounded-full right-[134px] transition-all cursor-pointer border-transparent hover:bg-accent hover:border hover:border-input border active:bg-accent duration-200 z-10 p-2',
-            {
-              'pointer-events-none': isBookmarked,
-            },
+            'absolute top-2 rounded-full right-[136px] transition-all cursor-pointer border-transparent hover:bg-accent hover:border hover:border-input border active:bg-accent duration-200 z-10 p-2',
           )}
-          disabled={isBookmarked}
           onClick={async () => {
-            await saveBookmark();
+            if (!isBookmarked) {
+              await saveBookmark();
+            } else {
+              await deleteBookmark(isBookmarked);
+            }
           }}
         >
-          {isBookmarked ? (
+          {bookmarkLoading ? (
+            <Loader />
+          ) : isBookmarked ? (
             <SavedBookmark className="h-4 w-4 shrink-0 text-green-600" />
           ) : (
             <AddBookmark className="h-4 w-4 shrink-0 text-primary" />
@@ -188,7 +206,7 @@ function Bookmarks() {
             fetchAndCacheBookmarks(invalidateCache);
           }}
         >
-          <RefreshCw className="h-4 w-4 shrink-0 text-primary" />
+          <RefreshIcon className="h-4 w-4 shrink-0 text-primary" />
         </button>
 
         <CommandWithoutDialog className="mt-10" loop>
@@ -240,7 +258,7 @@ function Bookmarks() {
                           </span>
                         </div>
                       </div>
-                      <BookmarkMenu data={bookmark} />
+                      <BookmarkMenu onDelete={deleteBookmark} data={bookmark} />
                     </div>
                   </CommandItem>
                 );

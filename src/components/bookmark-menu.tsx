@@ -1,4 +1,3 @@
-import { Link, MoreVerticalIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -12,11 +11,14 @@ import { cn } from 'lib/utils';
 
 import { BookmarkModified } from 'types/data';
 
+import { DeleteIcon, LinkIcon, MoreMenuIcon } from './icons';
+
 type CardMenuProps = {
   data: BookmarkModified;
+  onDelete: (data: BookmarkModified) => Promise<void>;
 };
 
-export default function BookmarkMenu({ data }: CardMenuProps) {
+export default function BookmarkMenu({ data, onDelete }: CardMenuProps) {
   const { url } = data;
 
   const siteUrl = new URL(url);
@@ -31,17 +33,26 @@ export default function BookmarkMenu({ data }: CardMenuProps) {
             '',
           )}
         >
-          <MoreVerticalIcon className="fill-muted-foreground !h-4 !w-4" />
+          <MoreMenuIcon className="fill-muted-foreground !h-4 !w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem
             onClick={(event) => {
               event.stopPropagation();
               navigator.clipboard.writeText(siteUrl.href);
-              toast.success('Link copied to clipboard.');
+              toast.success('Link copied to clipboard');
             }}
           >
-            <Link className="h-4 w-4  mr-2.5" /> Copy link
+            <LinkIcon className="h-4 w-4  mr-2.5" /> Copy link
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={async (event) => {
+              event.stopPropagation();
+              await onDelete(data);
+            }}
+            className="!text-red-600 focus:bg-red-100 active:bg-red-100 dark:focus:bg-red-800/30 dark:active:bg-red-800/30"
+          >
+            <DeleteIcon className="h-4 w-4 mr-2" /> Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
