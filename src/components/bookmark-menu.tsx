@@ -43,7 +43,7 @@ export default function BookmarkMenu({ data, onDelete }: CardMenuProps) {
               toast.success('Link copied to clipboard');
             }}
           >
-            <LinkIcon className="h-4 w-4  mr-2.5" /> Copy link
+            <LinkIcon className="h-4 w-4  mr-2" /> Copy link
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={async (event) => {
