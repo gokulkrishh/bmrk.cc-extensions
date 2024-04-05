@@ -1,6 +1,6 @@
 import supabase from 'lib/supabase';
 
-import { Bookmark, BookmarkInsert, BookmarkModified } from 'types/data';
+import { BookmarkInsert, BookmarkModified } from 'types/data';
 
 const manifestData = chrome.runtime.getManifest();
 
