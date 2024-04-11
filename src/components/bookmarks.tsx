@@ -107,6 +107,8 @@ function Bookmarks() {
             bookmarksData.find((bookmark) => {
               const urlObj = new URL(url);
               const bookmarkUrlObj = new URL(bookmark.url);
+              bookmarkUrlObj.searchParams.delete('utm_source');
+              urlObj.searchParams.delete('utm_source');
               return (
                 `${bookmarkUrlObj.origin}${bookmarkUrlObj.pathname}${bookmarkUrlObj.search}` ===
                 `${urlObj.origin}${urlObj.pathname}${urlObj.search}`
@@ -219,8 +221,7 @@ function Bookmarks() {
             placeholder="Search bookmarks"
             disabled={loading}
           />
-          <CommandList>
-            {!loading ? <CommandEmpty>No result found.</CommandEmpty> : null}
+          <CommandList className="w-full">
             <CommandGroup className="!px-1" heading="All Bookmarks">
               {loading ? (
                 <CommandLoading>
@@ -254,7 +255,7 @@ function Bookmarks() {
                         <div className="flex flex-col">
                           <span className="text-sm">{bookmark.title}</span>
                           <span className="text-xs text-muted-foreground">
-                            {url.hostname}
+                            {url.hostname?.replace('www.', '')}
                           </span>
                         </div>
                       </div>
@@ -264,6 +265,7 @@ function Bookmarks() {
                 );
               })}
             </CommandGroup>
+            {!loading ? <CommandEmpty>No result found.</CommandEmpty> : null}
           </CommandList>
         </CommandWithoutDialog>
       </div>

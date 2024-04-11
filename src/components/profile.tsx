@@ -3,7 +3,13 @@ import { User } from '@supabase/supabase-js';
 import supabase from 'lib/supabase';
 import { cn } from 'lib/utils';
 
-import { BugIcon, HelpIcon, LogoutIcon, ShortcutIcon } from './icons';
+import {
+  BugIcon,
+  ExternalLink,
+  HelpIcon,
+  LogoutIcon,
+  ShortcutIcon,
+} from './icons';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
   DropdownMenu,
@@ -47,6 +53,14 @@ export default function Profile({
           </AvatarFallback>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="mr-2 min-w-40">
+          <DropdownMenuItem
+            className="flex items-center cursor-pointer"
+            onClick={() => {
+              window.open(`https://app.bmrk.cc`, '_blank');
+            }}
+          >
+            <ExternalLink className="h-4 w-4 mr-2.5" /> Visit App
+          </DropdownMenuItem>
           <DropdownMenuItem
             className="flex items-center cursor-pointer"
             onClick={() => {
