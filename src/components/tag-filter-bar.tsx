@@ -18,11 +18,8 @@ export default function TagFilterBar({
   if (!tags.length) return null;
 
   return (
-    <div className="flex items-center gap-1.5 px-3 py-2 overflow-x-auto hidden-scrollbar mask-start-and-end border-b">
-      <button
-        onClick={() => onSelectTag(null)}
-        className="shrink-0"
-      >
+    <div className="flex shrink-0 items-center gap-1.5 px-3 py-2 overflow-x-auto hidden-scrollbar mask-start-and-end border-b min-h-[36px]">
+      <button onClick={() => onSelectTag(null)} className="shrink-0">
         <Badge
           className={cn(
             'font-normal cursor-pointer transition-all py-1 px-2.5 rounded-full text-xs',
@@ -38,9 +35,7 @@ export default function TagFilterBar({
       {tags.map((tag) => (
         <button
           key={tag.id}
-          onClick={() =>
-            onSelectTag(selectedTag?.id === tag.id ? null : tag)
-          }
+          onClick={() => onSelectTag(selectedTag?.id === tag.id ? null : tag)}
           className="shrink-0"
         >
           <Badge
