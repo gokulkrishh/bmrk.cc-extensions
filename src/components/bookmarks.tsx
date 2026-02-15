@@ -1,16 +1,18 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { toast } from 'sonner';
 
 import supabase, { getUser } from 'lib/supabase';
 import { cn } from 'lib/utils';
 
-import { BookmarkInsertModified, BookmarkModified } from 'types/data';
+import { BookmarkInsertModified, BookmarkModified, Tag } from 'types/data';
 
 import BookmarkFavicon from './bookmark-favicon';
 import BookmarkMenu from './bookmark-menu';
 import { AddBookmark, RefreshIcon, SavedBookmark } from './icons';
 import Loader from './loader';
+import TagFilterBar from './tag-filter-bar';
+import TagManageDialog from './tag-manage-dialog';
 import { ThemeToggle } from './theme-toggle';
 import {
   CommandEmpty,
@@ -24,12 +26,57 @@ import {
 
 function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<BookmarkModified[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isBookmarked, setIsBookmarked] = useState<
     BookmarkModified | undefined
   >();
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+
+  // Tag dialog state — lifted here so the dialog renders outside cmdk
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [tagDialogBookmark, setTagDialogBookmark] =
+    useState<BookmarkModified | null>(null);
+
+  const fetchTags = useCallback(async () => {
+    try {
+      const user = await getUser();
+      const { data, error } = await supabase
+        .from('tags')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('name', { ascending: true })
+        .returns<Tag[]>();
+
+      if (error) throw error;
+      setTags(data ?? []);
+      chrome.storage.local.set({
+        tagsCache: data,
+        tagsCacheTime: Date.now(),
+      });
+    } catch {
+      // Silent fail for tags - not critical
+    }
+  }, []);
+
+  const loadCachedTags = useCallback(() => {
+    chrome.storage.local.get(
+      ['tagsCache', 'tagsCacheTime'],
+      (items) => {
+        if (
+          items.tagsCache &&
+          items.tagsCacheTime &&
+          items.tagsCacheTime > Date.now() - 7200 * 1000
+        ) {
+          setTags(items.tagsCache);
+        } else {
+          fetchTags();
+        }
+      },
+    );
+  }, [fetchTags]);
 
   const fetchBookmarks = useCallback(
     async (callback: (data: BookmarkModified[]) => void) => {
@@ -135,16 +182,24 @@ function Bookmarks() {
       if (request.type === 'refreshBookmarks') {
         const invalidateCache = true;
         fetchAndCacheBookmarks(invalidateCache);
+        fetchTags();
       } else if (request.type === 'forceLogout') {
         setBookmarks([]);
-        await chrome.storage.local.set({ cache: [], cacheTime: -1 });
+        setTags([]);
+        await chrome.storage.local.set({
+          cache: [],
+          cacheTime: -1,
+          tagsCache: [],
+          tagsCacheTime: -1,
+        });
         await supabase.auth.signOut();
       }
     };
     fetchAndCacheBookmarks();
+    loadCachedTags();
     chrome.runtime.onMessage.addListener(listenerCallback);
     return () => chrome.runtime.onMessage.removeListener(listenerCallback);
-  }, [fetchAndCacheBookmarks, setCurrentPageAsBookmarked]);
+  }, [fetchAndCacheBookmarks, setCurrentPageAsBookmarked, loadCachedTags, fetchTags]);
 
   const openBookmark = (url: string) => {
     window.open(url, '_blank');
@@ -174,6 +229,28 @@ function Bookmarks() {
       },
     );
   };
+
+  const handleTagsChanged = useCallback(() => {
+    const invalidateCache = true;
+    fetchAndCacheBookmarks(invalidateCache);
+    fetchTags();
+  }, [fetchAndCacheBookmarks, fetchTags]);
+
+  const handleManageTags = useCallback((bookmark: BookmarkModified) => {
+    setTagDialogBookmark(bookmark);
+    setTagDialogOpen(true);
+  }, []);
+
+  const filteredBookmarks = useMemo(() => {
+    if (!selectedTag) return bookmarks;
+    return bookmarks.filter((bookmark) =>
+      bookmark.bookmarks_tags.some(
+        ({ tags: { id } }) => id === selectedTag.id,
+      ),
+    );
+  }, [bookmarks, selectedTag]);
+
+  const groupHeading = selectedTag ? selectedTag.name : 'All Bookmarks';
 
   return (
     <>
@@ -206,6 +283,7 @@ function Bookmarks() {
           onClick={() => {
             const invalidateCache = true;
             fetchAndCacheBookmarks(invalidateCache);
+            fetchTags();
           }}
         >
           <RefreshIcon className="h-4 w-4 shrink-0 text-primary" />
@@ -221,8 +299,13 @@ function Bookmarks() {
             placeholder="Search bookmarks"
             disabled={loading}
           />
+          <TagFilterBar
+            tags={tags}
+            selectedTag={selectedTag}
+            onSelectTag={setSelectedTag}
+          />
           <CommandList className="w-full">
-            <CommandGroup className="!px-1" heading="All Bookmarks">
+            <CommandGroup className="!px-1" heading={groupHeading}>
               {loading ? (
                 <CommandLoading>
                   <div className="flex justify-center my-6">
@@ -230,10 +313,10 @@ function Bookmarks() {
                   </div>
                 </CommandLoading>
               ) : null}
-              {bookmarks.map((bookmark: BookmarkModified) => {
+              {filteredBookmarks.map((bookmark: BookmarkModified) => {
                 const url = new URL(bookmark.url);
                 url.searchParams.append('utm_source', 'bmrk.cc');
-                const tags = bookmark.bookmarks_tags
+                const bookmarkTags = bookmark.bookmarks_tags
                   .map(({ tags: { name } }) => name)
                   .join('-');
                 return (
@@ -242,7 +325,7 @@ function Bookmarks() {
                     onSelect={() => {
                       openBookmark(url.href);
                     }}
-                    value={`${bookmark.title}-${url.href}-${tags}`}
+                    value={`${bookmark.title}-${url.href}-${bookmarkTags}`}
                     key={bookmark.id}
                   >
                     <div className="flex items-start justify-between w-full">
@@ -259,7 +342,11 @@ function Bookmarks() {
                           </span>
                         </div>
                       </div>
-                      <BookmarkMenu onDelete={deleteBookmark} data={bookmark} />
+                      <BookmarkMenu
+                        onDelete={deleteBookmark}
+                        data={bookmark}
+                        onManageTags={handleManageTags}
+                      />
                     </div>
                   </CommandItem>
                 );
@@ -269,6 +356,17 @@ function Bookmarks() {
           </CommandList>
         </CommandWithoutDialog>
       </div>
+
+      {/* Dialog rendered OUTSIDE of CommandWithoutDialog to avoid cmdk event conflicts */}
+      {tagDialogBookmark && (
+        <TagManageDialog
+          open={tagDialogOpen}
+          onOpenChange={setTagDialogOpen}
+          bookmark={tagDialogBookmark}
+          tags={tags}
+          onDone={handleTagsChanged}
+        />
+      )}
     </>
   );
 }
